@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, ttk
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import functions as gr
 import perceptron as pc
 
@@ -70,17 +70,17 @@ alfa = tk.Spinbox(
 )
 alfa.place(rely=0.4, relx=0.22)
 
-#Θ
-tetaLabel = ttk.Label(dados, text="Θ: ")
-tetaLabel.place(rely=0.7, relx=0.1)
-teta = tk.Spinbox(
+#threshold
+thresholdLabel = ttk.Label(dados, text="threshold: ")
+thresholdLabel.place(rely=0.7, relx=0.1)
+threshold = tk.Spinbox(
     dados,
     from_=-1,
     to=1,
     increment=0.1,
     format='%1.1f'
 )
-teta.place(rely=0.7, relx=0.2)
+threshold.place(rely=0.7, relx=0.2)
 
 #Tela com o resultado
 class Results(tk.Toplevel):
@@ -89,7 +89,7 @@ class Results(tk.Toplevel):
 
         #pega os dados do perceptron
         dados, W, target = pc.getDados(path["text"],float(x0.get()))
-        df = pc.getResult(dados,W,target,float(alfa.get()), float(teta.get()))
+        df, W = pc.getResult(dados,W,target,float(alfa.get()), float(teta.get()))
 
         # Inicia a Tela
         super().__init__(master=master)
@@ -102,7 +102,7 @@ class Results(tk.Toplevel):
         janela1 = tk.Frame(nb)
         nb.add(janela1,text= "Tabela")
 
-
+        #Tabela
         # Mosta a tabela com o resultado
         frame2 = tk.LabelFrame(janela1, text="Excel Data")
         frame2.place(height=580, width=1280, rely=0)
@@ -115,8 +115,29 @@ class Results(tk.Toplevel):
         treescrolly2.pack(side="right", fill="y")
         gr.LoadExcel(tb= tb2, df= df)
 
-        janela2 = tk.Frame(nb)
-        nb.add(janela2, text="Grafico")
+
+        
+        if len(dados.columns) == 3:
+
+
+            if W[2] != 0 :
+                slope = -(W[1] / W[2])
+                intercept = (float(teta.get()) / W[2])
+            else:
+                slope , intercept = 0,0
+            janela2 = tk.Frame(nb)
+            nb.add(janela2, text="Grafico")
+            g1_p, g2_p, yc = pc.separator(dados, slope, intercept, 0)
+            figure = plt.Figure(figsize=(10, 6))
+            aux = figure.add_subplot(111)
+            plt.grid(True)
+            aux.scatter(g1_p['x'], g1_p['y'], color='blue')
+            aux.scatter(g2_p['x'], g2_p['y'], color='orange')
+            # yc = (slope*x) + intercept*dados.min()['x0'] - t
+            plt.grid()
+            aux.plot(dados['x1'], yc, '-r', label='y=x')
+            canvas = FigureCanvasTkAgg(figure,janela2)
+            canvas.get_tk_widget().pack(side = tk.BOTTOM, fill = tk.BOTH, expand  = True)
 
 
 
